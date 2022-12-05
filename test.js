@@ -80,7 +80,6 @@ function evalTeacher () {
   }
   if (inputGroup.length === 0) return
   const select = new Array(inputGroup.length).fill(2)
-  select[genRandomInteger(0, inputGroup.length - 1)] = 0
   let choose = genRandomInteger(0, inputGroup.length - 1)
 
   const bestCnt = prompt('请输入你想要评出的 最优 数目：')
