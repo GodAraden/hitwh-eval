@@ -42,6 +42,8 @@ jobs:
           ARGS: '-rltgoDzvO'
           SCRIPT_BEFORE: |
             cd ${{ secrets.REMOTE_TARGET }}
+            chattr -i ${{ matrix.dist-dir }}/.user.ini
+            chmod -R 777 ${{ matrix.dist-dir }}/
             rm -rf ${{ matrix.dist-dir }}
           SCRIPT_AFTER: |
             cd ${{ secrets.REMOTE_TARGET }}
