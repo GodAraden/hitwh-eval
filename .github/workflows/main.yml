@@ -1,0 +1,45 @@
+name: build and deploy # workflow 名称
+on:
+  push: # push 事件触发
+    branches: [master] # 只在 master 分支有新的 push 情况下触发
+
+jobs:
+  build: # job 名称
+    runs-on: ubuntu-latest # 执行 workflow 所需的操作系统环境
+    strategy:
+      matrix:
+        node-version: [18]
+        pnpm-version: [8]
+        source-dir: [docs/.vuepress/dist] # 打包出来的项目文件夹名称
+        dist-dir: [eval.araden.top] # 要改成的项目文件夹名称
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3 # 使用切换分支的 action 操作
+
+      - name: pnpm setup
+        uses: pnpm/action-setup@v2 # 初始化 pnpm
+        with:
+          version: ${{ matrix.pnpm-version }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: build
+        run: pnpm install && pnpm build
+
+      - name: deploy
+        uses: easingthemes/ssh-deploy@main # 使用 ssh 上传文件的 action 操作
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }} # ssh 密钥对中的私钥
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST  }} # 服务器主机 ip
+          REMOTE_USER: ${{ secrets.REMOTE_USER }} # 服务器用户名
+          SOURCE: '${{ matrix.source-dir }}' # 要进行上传的文件目录
+          TARGET: ${{ secrets.REMOTE_TARGET }} # 要进行部署的生产环境目录
+          ARGS: '-rltgoDzvO'
+          SCRIPT_AFTER: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            mv ${{ matrix.source-dir }} ${{ matrix.dist-dir }}
