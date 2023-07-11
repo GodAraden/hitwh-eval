@@ -45,6 +45,9 @@ jobs:
             chattr -i ${{ matrix.dist-dir }}/.user.ini
             chmod -R 777 ${{ matrix.dist-dir }}/
             rm -rf ${{ matrix.dist-dir }}
+            chattr -i dist/.user.ini
+            chmod -R 777 dist/
+            rm -rf dist
           SCRIPT_AFTER: |
             cd ${{ secrets.REMOTE_TARGET }}
-            mv ${{ matrix.source-dir }} ${{ matrix.dist-dir }}
+            mv dist ${{ matrix.dist-dir }}
