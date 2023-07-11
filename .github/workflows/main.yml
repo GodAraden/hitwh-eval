@@ -40,6 +40,9 @@ jobs:
           SOURCE: '${{ matrix.source-dir }}' # 要进行上传的文件目录
           TARGET: ${{ secrets.REMOTE_TARGET }} # 要进行部署的生产环境目录
           ARGS: '-rltgoDzvO'
+          SCRIPT_BEFORE: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            rm -rf ${{ matrix.dist-dir }}
           SCRIPT_AFTER: |
             cd ${{ secrets.REMOTE_TARGET }}
             mv ${{ matrix.source-dir }} ${{ matrix.dist-dir }}
