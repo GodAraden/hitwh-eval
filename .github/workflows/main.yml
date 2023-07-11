@@ -44,8 +44,3 @@ jobs:
           SOURCE: '${{ env.PROJECT_DIR }}' # 要进行上传的文件目录
           TARGET: ${{ env.TARGET_DIR }} # 要进行部署的生产环境目录
           ARGS: '-rltgoDzvO'
-          SCRIPT_BEFORE: | # 上传前的操作：确保服务器指定目录没有同名文件夹
-            cd ${{ env.TARGET_DIR }}
-            chattr -i ${{ env.PROJECT_DIR }}/.user.ini
-            chmod -R 777 ${{ env.PROJECT_DIR }}/
-            rm -rf ${{ env.PROJECT_DIR }}
