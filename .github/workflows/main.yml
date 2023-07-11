@@ -4,8 +4,7 @@ on:
     branches: [master] # 只在 master 分支有新的 push 情况下触发
 
 env:
-  SOURCE_DIR: /docs/.vuepress/ # 打包出的文件夹位置
-  PACKED_DIR: dist # 打包出的文件夹名称
+  PACKED_PATH: /docs/.vuepress/ # 打包出的文件夹位置，正常为空，vuepress 中为 /docs/.vuepress/
   TARGET_DIR: /www/wwwroot/ # 打包好的项目目录上传位置
   PROJECT_DIR: eval.araden.top # 打包好的项目目录要改成的名字
   NODE_VERSION: 18
@@ -33,13 +32,16 @@ jobs:
       - name: build
         run: pnpm install && pnpm build
 
+      - name: deploy prepare # Github Action 虚拟机上的操作，改名，挪到项目根目录下
+        run: mv ${{ env.PACKED_PATH }}dist ${{ env.PROJECT_DIR }}
+
       - name: deploy
         uses: easingthemes/ssh-deploy@main # 使用 ssh 上传文件的 action 操作
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }} # ssh 密钥对中的私钥
           REMOTE_HOST: ${{ secrets.REMOTE_HOST  }} # 服务器主机 ip
           REMOTE_USER: ${{ env.REMOTE_USER }} # 服务器用户名
-          SOURCE: '${{ env.SOURCE_DIR }}${{ env.PACKED_DIR }}' # 要进行上传的文件目录
+          SOURCE: '${{ env.PROJECT_DIR }}' # 要进行上传的文件目录
           TARGET: ${{ env.TARGET_DIR }} # 要进行部署的生产环境目录
           ARGS: '-rltgoDzvO'
           SCRIPT_BEFORE: | # 上传前的操作：确保服务器指定目录没有同名文件夹
@@ -47,9 +49,3 @@ jobs:
             chattr -i ${{ env.PROJECT_DIR }}/.user.ini
             chmod -R 777 ${{ env.PROJECT_DIR }}/
             rm -rf ${{ env.PROJECT_DIR }}
-            chattr -i ${{ env.PACKED_DIR }}/.user.ini
-            chmod -R 777 ${{ env.PACKED_DIR }}/
-            rm -rf ${{ env.PACKED_DIR }}
-          SCRIPT_AFTER: | # 上传后的操作：将打包出的文件夹更名
-            cd ${{ env.TARGET_DIR }}
-            mv ${{ env.PACKED_DIR }} ${{ env.PROJECT_DIR }}
