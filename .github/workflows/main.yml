@@ -40,7 +40,7 @@ jobs:
           SOURCE: '${{ matrix.source-dir }}' # 要进行上传的文件目录
           TARGET: ${{ secrets.REMOTE_TARGET }} # 要进行部署的生产环境目录
           ARGS: '-rltgoDzvO'
-          SCRIPT_BEFORE: |
+          SCRIPT_BEFORE: | # 上传前的操作，确保 REMOTE_TARGET 目录没有同名文件夹
             cd ${{ secrets.REMOTE_TARGET }}
             chattr -i ${{ matrix.dist-dir }}/.user.ini
             chmod -R 777 ${{ matrix.dist-dir }}/
@@ -48,6 +48,6 @@ jobs:
             chattr -i dist/.user.ini
             chmod -R 777 dist/
             rm -rf dist
-          SCRIPT_AFTER: |
+          SCRIPT_AFTER: | # 上传后的操作，将打包出的 dist 文件夹更名
             cd ${{ secrets.REMOTE_TARGET }}
             mv dist ${{ matrix.dist-dir }}
