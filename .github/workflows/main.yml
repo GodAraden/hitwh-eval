@@ -13,6 +13,9 @@ jobs:
         source-dir: [docs/.vuepress/dist] # 打包出来的项目文件夹名称
         dist-dir: [eval.araden.top] # 要改成的项目文件夹名称
 
+        REMOTE_USER: [root]
+        REMOTE_TARGET: [/www/wwwroot]
+
     steps:
       - name: checkout
         uses: actions/checkout@v3 # 使用切换分支的 action 操作
@@ -36,12 +39,12 @@ jobs:
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }} # ssh 密钥对中的私钥
           REMOTE_HOST: ${{ secrets.REMOTE_HOST  }} # 服务器主机 ip
-          REMOTE_USER: ${{ secrets.REMOTE_USER }} # 服务器用户名
+          REMOTE_USER: ${{ matrix.REMOTE_USER }} # 服务器用户名
           SOURCE: '${{ matrix.source-dir }}' # 要进行上传的文件目录
-          TARGET: ${{ secrets.REMOTE_TARGET }} # 要进行部署的生产环境目录
+          TARGET: ${{ matrix.REMOTE_TARGET }} # 要进行部署的生产环境目录
           ARGS: '-rltgoDzvO'
           SCRIPT_BEFORE: | # 上传前的操作，确保 REMOTE_TARGET 目录没有同名文件夹
-            cd ${{ secrets.REMOTE_TARGET }}
+            cd ${{ matrix.REMOTE_TARGET }}
             chattr -i ${{ matrix.dist-dir }}/.user.ini
             chmod -R 777 ${{ matrix.dist-dir }}/
             rm -rf ${{ matrix.dist-dir }}
@@ -49,5 +52,5 @@ jobs:
             chmod -R 777 dist/
             rm -rf dist
           SCRIPT_AFTER: | # 上传后的操作，将打包出的 dist 文件夹更名
-            cd ${{ secrets.REMOTE_TARGET }}
+            cd ${{ matrix.REMOTE_TARGET }}
             mv dist ${{ matrix.dist-dir }}
