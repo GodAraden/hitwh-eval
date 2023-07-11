@@ -3,19 +3,16 @@ on:
   push: # push 事件触发
     branches: [master] # 只在 master 分支有新的 push 情况下触发
 
+env:
+  PROJECT_NAME: test.araden.top
+  NODE_VERSION: 18
+  PNPM_VERSION: 8
+  TARGET_DIR: /www/wwwroot # 打包好的项目目录上传位置
+  REMOTE_USER: root
+
 jobs:
-  build: # job 名称
+  build-and-deploy: # job 名称
     runs-on: ubuntu-latest # 执行 workflow 所需的操作系统环境
-    strategy:
-      matrix:
-        node-version: [18]
-        pnpm-version: [8]
-        source-dir: [docs/.vuepress/dist] # 打包出来的项目文件夹名称
-        dist-dir: [eval.araden.top] # 要改成的项目文件夹名称
-
-        REMOTE_USER: [root]
-        REMOTE_TARGET: [/www/wwwroot]
-
     steps:
       - name: checkout
         uses: actions/checkout@v3 # 使用切换分支的 action 操作
@@ -23,12 +20,12 @@ jobs:
       - name: pnpm setup
         uses: pnpm/action-setup@v2 # 初始化 pnpm
         with:
-          version: ${{ matrix.pnpm-version }}
+          version: ${{ env.PNPM_VERSION }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: build
@@ -39,18 +36,18 @@ jobs:
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }} # ssh 密钥对中的私钥
           REMOTE_HOST: ${{ secrets.REMOTE_HOST  }} # 服务器主机 ip
-          REMOTE_USER: ${{ matrix.REMOTE_USER }} # 服务器用户名
-          SOURCE: '${{ matrix.source-dir }}' # 要进行上传的文件目录
-          TARGET: ${{ matrix.REMOTE_TARGET }} # 要进行部署的生产环境目录
+          REMOTE_USER: ${{ env.REMOTE_USER }} # 服务器用户名
+          SOURCE: 'dist' # 要进行上传的文件目录
+          TARGET: ${{ env.TARGET_DIR }} # 要进行部署的生产环境目录
           ARGS: '-rltgoDzvO'
           SCRIPT_BEFORE: | # 上传前的操作，确保 REMOTE_TARGET 目录没有同名文件夹
-            cd ${{ matrix.REMOTE_TARGET }}
-            chattr -i ${{ matrix.dist-dir }}/.user.ini
-            chmod -R 777 ${{ matrix.dist-dir }}/
-            rm -rf ${{ matrix.dist-dir }}
+            cd ${{ env.TARGET_DIR }}
+            chattr -i ${{ env.PROJECT_NAME }}/.user.ini
+            chmod -R 777 ${{ env.PROJECT_NAME }}/
+            rm -rf ${{ env.PROJECT_NAME }}
             chattr -i dist/.user.ini
             chmod -R 777 dist/
             rm -rf dist
-          SCRIPT_AFTER: | # 上传后的操作，将打包出的 dist 文件夹更名
-            cd ${{ matrix.REMOTE_TARGET }}
-            mv dist ${{ matrix.dist-dir }}
+          SCRIPT_AFTER: | # 上传后的操作，将打包出的文件夹更名
+            cd ${{ env.TARGET_DIR }}
+            mv dist ${{ env.PROJECT_NAME }}
