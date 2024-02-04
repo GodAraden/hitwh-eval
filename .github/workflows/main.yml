@@ -9,6 +9,7 @@ env:
   PROJECT_DIR: eval.araden.top # 打包好的项目目录要改成的名字
   NODE_VERSION: 18
   PNPM_VERSION: 8
+  REMOTE_HOST: 47.94.101.247
   REMOTE_USER: root
 
 jobs:
@@ -39,7 +40,7 @@ jobs:
         uses: easingthemes/ssh-deploy@main # 使用 ssh 上传文件的 action 操作
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }} # ssh 密钥对中的私钥
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST  }} # 服务器主机 ip
+          REMOTE_HOST: ${{ env.REMOTE_HOST  }} # 服务器主机 ip
           REMOTE_USER: ${{ env.REMOTE_USER }} # 服务器用户名
           SOURCE: '${{ env.PROJECT_DIR }}' # 要进行上传的文件目录
           TARGET: ${{ env.TARGET_DIR }} # 要进行部署的生产环境目录
